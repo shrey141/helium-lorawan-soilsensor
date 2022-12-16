@@ -66,6 +66,9 @@ AHT10 humiditySensor;
 # warning "You must replace the values marked FILLMEIN with real values from the TTN control panel!"
 # define FILLMEIN (#dont edit this, edit the lines that use FILLMEIN)
 #endif
+// This should also be in little endian format, see above.
+static const u1_t PROGMEM DEVEUI[8]={  };
+void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8);}
 
 // This EUI must be in little-endian format, so least-significant-byte
 // first. When copying an EUI from ttnctl output, this means to reverse
@@ -73,10 +76,6 @@ AHT10 humiditySensor;
 // 0x70.
 static const u1_t PROGMEM APPEUI[8]={  };
 void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8);}
-
-// This should also be in little endian format, see above.
-static const u1_t PROGMEM DEVEUI[8]={  };
-void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8);}
 
 // This key should be in big endian format (or, since it is not really a
 // number but a block of memory, endianness does not really apply). In
@@ -89,7 +88,7 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 300; //1200;
+const unsigned TX_INTERVAL = 1200;
 
 // sensors pin mapping
 int sensorPin = A2;         // select the input pin for the potentiometer
