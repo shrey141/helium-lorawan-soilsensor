@@ -26,13 +26,11 @@ function Decoder(bytes, port) {
 
 		// return values
 		return {
-			data: {
-				soilMoisture: rawSoil, // %
-				temperature: decodedTemp, // C
-				humidity: decodedHumi, // %
-				battery: decodedBatt, // V
-				adc: rawADC
-			},
+			soilMoisture: rawSoil, // %
+			temperature: decodedTemp, // C
+			humidity: decodedHumi, // %
+			battery: decodedBatt, // V
+			adc: rawADC,
 			warnings: [],
 			errors: []
 		};
