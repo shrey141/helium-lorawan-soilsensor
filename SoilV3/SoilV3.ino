@@ -8,9 +8,9 @@
  * including, but not limited to, copying, modification and redistribution.
  * NO WARRANTY OF ANY KIND IS PROVIDED.
  *
- * This example sends a valid LoRaWAN packet with payload "Hello,
- * world!", using frequency and encryption settings matching those of
- * the The Things Network.
+ * This example sends a valid LoRaWAN packet with payload of soil sensors
+ * using frequency and encryption settings matching those of
+ * the The Helium Network.
  *
  * This uses OTAA (Over-the-air activation), where where a DevEUI and
  * application key is configured, which are used in an over-the-air
@@ -18,8 +18,7 @@
  * assigned/generated for use with all further communication.
  *
  * Note: LoRaWAN per sub-band duty-cycle limitation is enforced (1% in
- * g1, 0.1% in g2), but not the TTN fair usage policy (which is probably
- * violated by this sketch when left running for longer)!
+ * g1, 0.1% in g2)
 
  * To use this sketch, first register your application and device with
  * the things network, to set or generate an AppEUI, DevEUI and AppKey.
@@ -47,7 +46,7 @@
 #include <hal/hal.h>
 #include <SPI.h>
 
-# define SKETCH_VERSION "Tamadite: 2022July27_1"
+# define SKETCH_VERSION "Shrey: 2022Dec17_1"
 
 //#define PRINT
 
@@ -55,7 +54,7 @@ AHT10 humiditySensor;
 
 //
 // For normal use, we require that you edit the sketch to replace FILLMEIN
-// with values assigned by the TTN console. However, for regression tests,
+// with values assigned by the Helium console. However, for regression tests,
 // we want to be able to compile these scripts. The regression tests define
 // COMPILE_REGRESSION_TEST, and in that case we define FILLMEIN to a non-
 // working but innocuous value.
@@ -63,32 +62,30 @@ AHT10 humiditySensor;
 #ifdef COMPILE_REGRESSION_TEST
 # define FILLMEIN 0
 #else
-# warning "You must replace the values marked FILLMEIN with real values from the TTN control panel!"
+# warning "You must replace the values marked FILLMEIN with real values from the Helium control panel!"
 # define FILLMEIN (#dont edit this, edit the lines that use FILLMEIN)
 #endif
-// This should also be in little endian format, see above.
+
+// This should also be in little endian format from the Helium Console
 static const u1_t PROGMEM DEVEUI[8]={  };
 void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8);}
 
-// This EUI must be in little-endian format, so least-significant-byte
-// first. When copying an EUI from ttnctl output, this means to reverse
-// the bytes. For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
-// 0x70.
+// This should also be in little endian format from the Helium Console
 static const u1_t PROGMEM APPEUI[8]={  };
 void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8);}
 
 // This key should be in big endian format (or, since it is not really a
 // number but a block of memory, endianness does not really apply). In
-// practice, a key taken from ttnctl can be copied as-is.
+// practice, a key taken from Helium Console can be copied as-is.
 static const u1_t PROGMEM APPKEY[16] = {  };
 void os_getDevKey (u1_t* buf) {  memcpy_P(buf, APPKEY, 16);}
 
-// payload to send to TTN gateway
+// payload to send to Helium Console
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 1200;
+const unsigned TX_INTERVAL = 600;
 
 // sensors pin mapping
 int sensorPin = A2;         // select the input pin for the potentiometer
@@ -362,16 +359,15 @@ int ADC_O_2;           // ADC Output Next 2 bits
 	      humidity=0.0;         
     }
     soilmoisturepercent = map(sensorValue, AirValue, WaterValue, 0, 100);
-/*
-    if(soilmoisturepercent >= 100)
-    {
-     soilmoisturepercent=100;
-    }
-    else if(soilmoisturepercent <=0)
-    {
-      soilmoisturepercent=0;
-    }
-*/    
+
+    // if(soilmoisturepercent >= 100)
+    // {
+    //  soilmoisturepercent=100;
+    // }
+    // else if(soilmoisturepercent <=0)
+    // {
+    //   soilmoisturepercent=0;
+    // }   
     
     // measurement completed, power down sensors
     sensorPowerOff();
@@ -451,7 +447,7 @@ void setup() {
     Serial.begin(9600);
     Serial.println(F("Starting"));
     Serial.print(F("Sketch version: "));
-    Serial.println(F("SKETCH_VERSION"));
+    Serial.println(F(SKETCH_VERSION));
 
     // set control pin for VCC as Output
     pinMode(sensorPowerCtrlPin, OUTPUT);
