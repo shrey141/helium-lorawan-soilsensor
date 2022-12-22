@@ -8,63 +8,31 @@
  * including, but not limited to, copying, modification and redistribution.
  * NO WARRANTY OF ANY KIND IS PROVIDED.
  *
- * This example sends a valid LoRaWAN packet with payload of soil sensors
+ * This sketch sends a valid LoRaWAN packet with payload of soil sensors
  * using frequency and encryption settings matching those of
  * the The Helium Network.
  *
- * This uses OTAA (Over-the-air activation), where where a DevEUI and
+ * This uses OTAA (Over-the-air activation), where a DevEUI and
  * application key is configured, which are used in an over-the-air
  * activation procedure where a DevAddr and session keys are
  * assigned/generated for use with all further communication.
- *
- * Note: LoRaWAN per sub-band duty-cycle limitation is enforced (1% in
- * g1, 0.1% in g2)
-
- * To use this sketch, first register your application and device with
- * the things network, to set or generate an AppEUI, DevEUI and AppKey.
- * Multiple devices can use the same AppEUI, but each device has its own
- * DevEUI and AppKey.
  * 
- *
  * Do not forget to define the radio type correctly in
  * arduino-lmic/project_config/lmic_project_config.h or from your BOARDS.txt.
- *
  *******************************************************************************/
 
-// MCCI LoRaWAN LMIC library, Version: 4.0.0
 #include <lmic.h>
-
-// aht10 library, Date: 03-01-2020 
-// https://github.com/Makerfabs/Project_IoT-Irrigation-System/tree/master/LoraTransmitterADCAHT10
 #include "I2C_AHT10.h"
-
-// Lightweight low power library for Arduino, Version: 1.81, Date: 21-01-2020 
 #include <LowPower.h>
-
-// standard libraries
 #include <Wire.h>
 #include <hal/hal.h>
 #include <SPI.h>
 
-# define SKETCH_VERSION "Shrey: 2022Dec17_1"
+# define SKETCH_VERSION "2022Dec21_1"
 
 //#define PRINT
 
 AHT10 humiditySensor; 
-
-//
-// For normal use, we require that you edit the sketch to replace FILLMEIN
-// with values assigned by the Helium console. However, for regression tests,
-// we want to be able to compile these scripts. The regression tests define
-// COMPILE_REGRESSION_TEST, and in that case we define FILLMEIN to a non-
-// working but innocuous value.
-//
-#ifdef COMPILE_REGRESSION_TEST
-# define FILLMEIN 0
-#else
-# warning "You must replace the values marked FILLMEIN with real values from the Helium control panel!"
-# define FILLMEIN (#dont edit this, edit the lines that use FILLMEIN)
-#endif
 
 // This should also be in little endian format from the Helium Console
 static const u1_t PROGMEM DEVEUI[8]={  };
@@ -74,18 +42,15 @@ void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8);}
 static const u1_t PROGMEM APPEUI[8]={  };
 void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8);}
 
-// This key should be in big endian format (or, since it is not really a
-// number but a block of memory, endianness does not really apply). In
-// practice, a key taken from Helium Console can be copied as-is.
+// This key should be in big endian format from Helium Console
 static const u1_t PROGMEM APPKEY[16] = {  };
 void os_getDevKey (u1_t* buf) {  memcpy_P(buf, APPKEY, 16);}
 
 // payload to send to Helium Console
 static osjob_t sendjob;
 
-// Schedule TX every this many seconds (might become longer due to duty
-// cycle limitations).
-const unsigned TX_INTERVAL = 600;
+// Schedule TX every this many seconds
+const unsigned TX_INTERVAL = 1200;
 
 // sensors pin mapping
 int sensorPin = A2;         // select the input pin for the potentiometer
@@ -103,13 +68,13 @@ const lmic_pinmap lmic_pins = {
 // switch VCC on (sensors on)
 void sensorPowerOn(void)
 {
-  digitalWrite(sensorPowerCtrlPin, HIGH);//Sensor power on 
+  digitalWrite(sensorPowerCtrlPin, HIGH);
 }
 
 // switch VCC off (sensor off)
 void sensorPowerOff(void)
 {
-  digitalWrite(sensorPowerCtrlPin, LOW);//Sensor power off 
+  digitalWrite(sensorPowerCtrlPin, LOW);
 }
 
 void printHex2(unsigned v) {
@@ -167,7 +132,7 @@ void onEvent (ev_t ev) {
             }
             // Disable link check validation (automatically enabled
             // during join, but because slow data rates change max TX
-	          // size, we don't use it in this example.
+	        // size, we don't use it in this example.
             LMIC_setLinkCheckMode(0);
             break;
         /*
@@ -316,8 +281,6 @@ int ADC_O_2;           // ADC Output Next 2 bits
 //e    sensorValue = analogRead(sensorPin);
     delay(200);
   
-
-  
   // measure voltage by band gap voltage
   unsigned int getVDD = 0;
 
@@ -360,14 +323,14 @@ int ADC_O_2;           // ADC Output Next 2 bits
     }
     soilmoisturepercent = map(sensorValue, AirValue, WaterValue, 0, 100);
 
-    // if(soilmoisturepercent >= 100)
-    // {
-    //  soilmoisturepercent=100;
-    // }
-    // else if(soilmoisturepercent <=0)
-    // {
-    //   soilmoisturepercent=0;
-    // }   
+    if(soilmoisturepercent >= 100)
+    {
+     soilmoisturepercent=100;
+    }
+    else if(soilmoisturepercent <=0)
+    {
+      soilmoisturepercent=0;
+    }   
     
     // measurement completed, power down sensors
     sensorPowerOff();
@@ -414,7 +377,7 @@ int ADC_O_2;           // ADC Output Next 2 bits
     payload[2] = tempLow;
     payload[3] = tempHigh;
        
-   // used range for mapping type float to int:  -1...+1, -> value/100
+    // used range for mapping type float to int:  -1...+1, -> value/100
     uint16_t payloadHumid = 0;
     if(humidity !=0) payloadHumid = LMIC_f2sflt16(humidity/100);
     // int -> bytes
